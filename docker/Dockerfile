@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ARG CUDA=11.0
+ARG CUDA=11.1
 FROM nvidia/cuda:${CUDA}-cudnn8-runtime-ubuntu18.04
 # FROM directive resets ARGS, so we specify again (the value is retained if
 # previously set).
@@ -50,6 +50,20 @@ RUN wget -q -P /tmp \
 
 # Install conda packages.
 ENV PATH="/opt/conda/bin:$PATH"
+RUN echo -e 'channels:\n\
+  - defaults\n\
+show_channel_urls: true\n\
+default_channels:\n\
+  - https://mirror.nju.edu.cn/anaconda/pkgs/main\n\
+  - https://mirror.nju.edu.cn/anaconda/pkgs/r\n\
+  - https://mirror.nju.edu.cn/anaconda/pkgs/msys2\n\
+custom_channels:\n\
+  conda-forge: https://mirror.nju.edu.cn/anaconda/cloud\n\
+  msys2: https://mirror.nju.edu.cn/anaconda/cloud\n\
+  bioconda: https://mirror.nju.edu.cn/anaconda/cloud\n\
+  menpo: https://mirror.nju.edu.cn/anaconda/cloud\n\
+  pytorch: https://mirror.nju.edu.cn/anaconda/cloud\n\
+  simpleitk: https://mirror.nju.edu.cn/anaconda/cloud' > /root/.condarc
 RUN conda update -qy conda \
     && conda install -y -c conda-forge \
       openmm=7.5.1 \
@@ -65,7 +79,7 @@ RUN wget -q -P /app/alphafold/alphafold/common/ \
 # Install pip packages.
 RUN pip3 install --upgrade pip \
     && pip3 install -r /app/alphafold/requirements.txt \
-    && pip3 install --upgrade jax jaxlib==0.1.69+cuda${CUDA/./} -f \
+    && pip3 install --upgrade jaxlib==0.1.69+cuda${CUDA/./} -f \
       https://storage.googleapis.com/jax-releases/jax_releases.html
 
 # Apply OpenMM patch.
